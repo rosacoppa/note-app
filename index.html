@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Notes App</title>	
+	<script src="js/jquery-3.2.1.min.js"></script>
+	<link rel="stylesheet" href="styles/styles.css">
+	<link rel="stylesheet" href="fonts/FontAwesome/css/font-awesome.min.css">
+	<link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="bootstrap/css/bootstrap-theme.min.css">
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+	<script src="https://unpkg.com/react@15.6.1/dist/react.js"></script>
+	<script src="https://unpkg.com/react-dom@15/dist/react-dom.js"></script>
+	<script src="https://unpkg.com/babel-standalone@6/babel.js"></script>
+	
+	
+</head>
+<body>
+<div id="root">
+</div>
+</body>
+
+<script type="text/babel">
+var notes = [{
+				number: 0, 
+				title: "", 
+				text: "",          //Массив объектов, где каждый объект - заметка
+				color: "", 
+				tags: [], 
+				category: ""
+			}];
+				
+var allNotes = [];
+var rand, myColor="";
+var myTags = [];
+var myCategory = ""
+var editFlag = 0;
+var tagsFlag = 0;
+var categoryFlag = 0;
+var noteFlag = 0;
+
+class AddNote extends React.Component{
+
+
+	constructor(props){
+			super(props);
+			this.addNote = this.addNote.bind(this);
+			this.showTags = this.showTags.bind(this);	
+			this.showCategory = this.showCategory.bind(this);
+	
+	}
+	addNote(event){
+	
+		var title = event.target.parentNode.parentNode.childNodes[0].value;
+		var text = event.target.parentNode.parentNode.childNodes[1].value;
+		if ((title == "") || (text == "")){
+			alert("Please fill in all the fields"); return ;}
+		
+		if (myTags == []){
+			alert("Please select tags"); return ;}
+		
+		this.props.notes.push({title: title, text: text, number: Math.floor(Math.random() * (1000 - 0 + 1)) + 0, color: myColor, tags: myTags, category: myCategory});
+		allNotes.push({title: title, text: text, number: Math.floor(Math.random() * (1000 - 0 + 1)) + 0, color: myColor, tags: myTags, category: myCategory});
+		
+		var inputs = event.target.parentNode.querySelectorAll('input');
+		for (var i=0; i<inputs.length; i++){
+			inputs[i].checked = false;
+		}
+		
+		myCategory = "";
+		event.target.parentNode.childNodes[1].childNodes[1].style.display = "none";
+		event.target.parentNode.childNodes[2].childNodes[1].style.display = "none";
+		event.target.parentNode.parentNode.childNodes[0].value = "";
+		event.target.parentNode.parentNode.childNodes[1].value = "";
+		
+		this.props.updateapp();
+				
+		
+		}
+		
+	
+	
+	choosedRed(){
+		myColor = "#FF927E";		
+	}
+	
+	choosedGreen(){
+		myColor = "#ADFF2F";
+	}
+	
+	choosedYellow(){
+		myColor = "#FFFF73";
+	}
+	
+	showTags(event){
+		if (tagsFlag == 1) {		
+			document.getElementById("tagsList").style.display = 'none';
+			tagsFlag = 0;
+		}
+		else {
+		document.getElementById("tagsList").style.display = "block";
+		tagsFlag = 1;}
+	}
+	
+	showCategory(event){
+		if (categoryFlag == 1) {
+			document.getElementById("categoryList").style.display = 'none';
+			categoryFlag = 0;
+		}
+		else{
+		document.getElementById("categoryList").style.display = "block";
+		categoryFlag = 1;}
+	}
+	
+	checkboxClicked(event){	
+		myTags.push(event.target.value);
+		
+	}
+	
+	
+	
+	radioClicked(event){
+		myCategory = event.target.value;
+	}
+	
+	
+	
+	render(){
+		return <div className = "input-container">
+			<input className = "title-input form-control" id = "title-input" type = "text" placeholder = "Enter title"></input>
+			<input className = "text-input form-control" id = "text-input" type = "text" placeholder = "Enter text"></input>
+			<div className= "instr-block">
+				<span className = "color-block">
+					<div className = "red-color" onClick = {this.choosedRed}></div>
+					<div className = "green-color" onClick = {this.choosedGreen}></div>
+					<div className = "yellow-color" onClick = {this.choosedYellow}></div>
+				</span>
+				
+				<div className = "category">
+					<div className = "category-heading" onClick = {this.showCategory}>Category<i className = "fa fa-caret-down"></i></div>					
+					<ul id = "categoryList" className = "category-list">
+						<li><input onClick = {this.radioClicked} name = "category" type="radio" value="Family" id = "family"/><label htmlFor = "family">Family</label></li>
+						<li><input onClick = {this.radioClicked}  name = "category" type="radio" value="Study" id = "study"/><label htmlFor = "study">Study</label></li>
+					</ul>
+				</div>
+				
+				<div className = "tags">
+					<div className = "tags-heading" onClick = {this.showTags}>Tags<i className = "fa fa-caret-down"></i></div>						
+					<ul id = "tagsList" className = "tags-list">
+						<li><input onClick = {this.checkboxClicked} type="checkbox" value="#goodDay" id = "goodDay"/><label htmlFor = "goodDay">#goodDay</label></li>
+						<li><input onClick = {this.checkboxClicked} type="checkbox" value="#summer" id = "summer"/><label htmlFor = "summer">#summer</label></li>
+					</ul>
+				</div>
+				<button className = "add-btn" onClick = {this.addNote}>Add note</button>
+			</div>				
+				
+			</div>
+		
+	}
+}
+
+
+
+
+
+
+class Note extends React.Component{
+
+
+	constructor(props){
+		super(props);		 
+		this.remove = this.remove.bind(this);
+		this.edit = this.edit.bind(this);
+		this.saveEdit = this.saveEdit.bind(this);
+		this.openNote = this.openNote.bind(this);
+	}
+
+	remove(event){
+		var i = 0;
+		var number = event.target.parentNode.parentNode.accessKey;
+		for ( i = 0; i < this.props.notes.length; i++){
+		 if(number == this.props.notes[i].number) break;}
+		
+		this.props.notes.splice(i, 1);
+		this.props.updateapp();
+		
+		
+	}
+	
+	saveEdit(event){
+			var inputField = event.target.parentNode.childNodes[0];
+			var newText = inputField.innerText;
+			var number = event.target.parentNode.parentNode.accessKey;
+			
+			this.props.notes.map((elem)=> {
+				if (elem.number == number){
+					elem.text = newText; 
+					return;
+					}
+			})
+			inputField.contentEditable = "false";
+			event.target.parentNode.childNodes[0].style.border = 'none';
+			event.target.parentNode.removeChild(event.target);
+			editFlag = 0;
+			this.props.updateapp();
+		
+	}
+	
+	
+	
+	edit(event){
+		
+		event.target.parentNode.parentNode.childNodes[1].style.display = 'block';
+		event.target.parentNode.parentNode.childNodes[1].childNodes[0].contentEditable = "true";
+		event.target.parentNode.parentNode.childNodes[1].childNodes[0].style.border = '1px solid #499EF9';	
+		if (editFlag == 1) return;			
+		var savebtn = document.createElement('button');
+		savebtn.innerText = "Сохранить";
+		savebtn.id = "savebtn";
+		
+		event.target.parentNode.parentNode.childNodes[1].appendChild(savebtn);		
+		document.getElementById("savebtn").onclick = this.saveEdit;
+		editFlag = 1; 	
+		
+	}
+	
+	openNote(event){
+		if (tagsFlag == 1) {
+			event.target.parentNode.parentNode.childNodes[1].style.display = "none";
+			tagsFlag = 0;
+		}
+		else{
+		event.target.parentNode.parentNode.childNodes[1].style.display = "block";
+		tagsFlag = 1;}
+	}
+	
+
+	render(){	
+		return (		
+			<div className = "note-block" accessKey = {this.props.number} style = {{backgroundColor: this.props.color}}><div className = "note-header" ><span className = "note-title" onClick = {this.openNote} style = {{width: "400px"}}>{this.props.title} </span><i className = "fa fa-trash" onClick = {this.remove}></i><i className= "edit-pencil fa fa-pencil" onClick = {this.edit}></i></div><div id = "note-content" className = "note-content"><div id = "note-text" className = "note-text" >{this.props.text}</div><div>Category: {this.props.category}</div><div>Tags: {
+						this.props.tags.map((elem) =>{
+							rand = Math.floor(Math.random() * (1000 - 0 + 1)) + 0;
+							return <span key = {rand}>{elem}</span>
+						})
+					}</div>
+				</div>
+			</div>)
+		
+			
+	}
+}
+
+
+class Content extends React.Component{
+constructor(props){
+		super(props);		 
+		this.filterByCtg = this.filterByCtg.bind(this);	
+		this.seeAll = this.seeAll.bind(this);	
+	}
+
+	seeAll(){
+		
+		notes = allNotes.slice(0, allNotes.length);
+		this.props.updateapp();
+	}
+	
+	
+	filterByCtg(event){
+		var fNotes = [];
+		notes.splice(0, notes.length-1);
+		notes = allNotes.slice();
+		
+		
+		var choosedCtg = event.target.value;
+		notes.map((elem, index) =>{
+			if (elem.category == choosedCtg){
+				fNotes.push(elem);		
+			}
+			
+		});		
+		var length = notes.length;
+		notes.splice(0, length);
+		notes = fNotes.slice(0, fNotes.length);
+		
+		this.props.updateapp();
+		
+		}
+		
+	showCtgFlt(event){
+		
+		if (categoryFlag == 1) {
+			document.getElementById("filter-ctg-list").style.display = 'none';
+			categoryFlag = 0;
+		}
+		else{
+		document.getElementById("filter-ctg-list").style.display = 'block';
+		categoryFlag = 1;}
+	}
+	
+
+	render(){
+	
+		return <div className = "main-content">		
+			<div className = "filter-btns">
+				<button onClick = {this.seeAll} className = "seeAll-btn">See all</button>
+				<div className = "filter-ctg">
+					<div className = "filter-ctg-heading" onClick = {this.showCtgFlt}>Filter by category<i className = "fa fa-caret-down"></i></div>						
+					<ul id = "filter-ctg-list" className = "filter-ctg-list">
+						<li><input onClick = {this.filterByCtg} type="radio" value="Family" name ="filter-ctg" id = "Family"/><label htmlFor = "Family">Family</label></li>
+						<li><input onClick = {this.filterByCtg} type="radio" value="Study" name = "filter-ctg" id = "Study"/><label htmlFor = "Study">Study</label></li>
+					</ul>
+				</div>
+				
+				
+				
+			</div>
+			{
+				this.props.notes.map((elem, index) => {
+					rand = Math.floor(Math.random() * (1000 - 0 + 1)) + 0;
+					return <Note key = {rand} number = {elem.number} title = {elem.title} text = {elem.text} notes = {this.props.notes} updateapp = {this.props.updateapp} color = {elem.color} tags = {elem.tags} category = {elem.category}/>
+				
+				})}
+		</div>
+	}
+}
+
+
+class App extends React.Component{
+	constructor(props){
+		super(props);
+		this.state = {notes : this.props.notes}; 
+		this.updateApp = this.updateApp.bind(this);
+		
+	}
+	
+	
+	updateApp(){			
+		this.setState({notes: notes});		
+	}
+
+	componentDidUpdate(){
+		for (var i = 0; i< notes.length; i++)
+		console.log(notes[i]);
+	}
+	render(){	
+		return <div className = "app-container">
+			<h2 className = "app-heading">My Notes</h2>
+			<AddNote notes = {this.props.notes} updateapp = {this.updateApp} />
+			<Content notes = {this.props.notes} updateapp = {this.updateApp} filternotes = {this.filterNotes} updToFilter = {this.updToFilter}/>
+		</div>
+	}
+	
+	
+}
+
+
+
+
+ReactDOM.render(<App notes = {notes}/>, document.getElementById("root"));
+
+
+
+
+</script>
+</html>
