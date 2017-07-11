@@ -21,23 +21,18 @@
 </body>
 
 <script type="text/babel">
-var notes = [{
-				number: 0, 
-				title: "", 
-				text: "",          //Массив объектов, где каждый объект - заметка
-				color: "", 
-				tags: [], 
-				category: ""
-			}];
-				
-var allNotes = [];
-var rand, myColor="";
-var myTags = [];
-var myCategory = ""
-var editFlag = 0;
-var tagsFlag = 0;
-var categoryFlag = 0;
-var noteFlag = 0;
+var notes = [];         //Массив объектов, где каждый объект - заметка
+						//с ключами number, title, text, color, tagsArr, category				
+
+var defaultArr = [], 
+rand = "",
+myColor="",
+myTags = [],
+myCategory = "",
+editFlag = 0,
+tagsFlag = 0,
+categoryFlag = 0,
+noteFlag = 0;
 
 class AddNote extends React.Component{
 
@@ -50,7 +45,7 @@ class AddNote extends React.Component{
 	
 	}
 	addNote(event){
-	
+		
 		var title = event.target.parentNode.parentNode.childNodes[0].value;
 		var text = event.target.parentNode.parentNode.childNodes[1].value;
 		if ((title == "") || (text == "")){
@@ -60,7 +55,7 @@ class AddNote extends React.Component{
 			alert("Please select tags"); return ;}
 		
 		this.props.notes.push({title: title, text: text, number: Math.floor(Math.random() * (1000 - 0 + 1)) + 0, color: myColor, tags: myTags, category: myCategory});
-		allNotes.push({title: title, text: text, number: Math.floor(Math.random() * (1000 - 0 + 1)) + 0, color: myColor, tags: myTags, category: myCategory});
+		
 		
 		var inputs = event.target.parentNode.querySelectorAll('input');
 		for (var i=0; i<inputs.length; i++){
@@ -68,6 +63,7 @@ class AddNote extends React.Component{
 		}
 		
 		myCategory = "";
+		myColor = "";
 		event.target.parentNode.childNodes[1].childNodes[1].style.display = "none";
 		event.target.parentNode.childNodes[2].childNodes[1].style.display = "none";
 		event.target.parentNode.parentNode.childNodes[0].value = "";
@@ -259,30 +255,23 @@ constructor(props){
 	}
 
 	seeAll(){
-		
-		notes = allNotes.slice(0, allNotes.length);
+		notes = defaultArr;
 		this.props.updateapp();
 	}
 	
 	
 	filterByCtg(event){
-		var fNotes = [];
-		notes.splice(0, notes.length-1);
-		notes = allNotes.slice();
+		var value = event.target.value;
+		var filteredArr = notes.filter((elem) => {
+			if (elem.category == value) return true;
+			else return false;
+		});
 		
-		
-		var choosedCtg = event.target.value;
-		notes.map((elem, index) =>{
-			if (elem.category == choosedCtg){
-				fNotes.push(elem);		
-			}
-			
-		});		
-		var length = notes.length;
-		notes.splice(0, length);
-		notes = fNotes.slice(0, fNotes.length);
-		
+		defaultArr = notes;
+		notes = filteredArr;
 		this.props.updateapp();
+		notes = defaultArr;
+		
 		
 		}
 		
@@ -338,21 +327,17 @@ class App extends React.Component{
 		this.setState({notes: notes});		
 	}
 
-	componentDidUpdate(){
-		for (var i = 0; i< notes.length; i++)
-		console.log(notes[i]);
-	}
+	
 	render(){	
 		return <div className = "app-container">
 			<h2 className = "app-heading">My Notes</h2>
-			<AddNote notes = {this.props.notes} updateapp = {this.updateApp} />
-			<Content notes = {this.props.notes} updateapp = {this.updateApp} filternotes = {this.filterNotes} updToFilter = {this.updToFilter}/>
+			<AddNote notes = {this.state.notes} updateapp = {this.updateApp} />
+			<Content notes = {this.state.notes} updateapp = {this.updateApp} filternotes = {this.filterNotes} updToFilter = {this.updToFilter}/>
 		</div>
 	}
 	
 	
 }
-
 
 
 
